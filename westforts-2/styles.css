@@ -1,0 +1,359 @@
+ /* Reset + baza */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #2c1810;
+      color: #f0e6d2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* --- Layout: mapa + panel po prawej --- */
+    #gameContainer {
+      position: relative; /* tooltip */
+      background: rgba(0,0,0,0.7);
+      border: 3px solid #8b6914;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      max-width: none;    /* pozwól panelowi się zmieścić */
+    }
+
+    
+	#layoutRow{
+	  display: flex;
+	  align-items: flex-start;
+	  gap: 16px;
+	  flex-wrap: nowrap;       /* ⬅️ nie zawijaj do nowej linii */
+	}
+
+
+    #boardWrap { flex: 0 0 auto; } /* zachowaj szer. canvas */
+
+    
+	
+#sidePanel{
+  flex: 0 0 320px;         /* ⬅️ sztywna szerokość panelu */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 720px;       /* dopasuj do wysokości canvasa, jeśli inna – zmień */
+  overflow: hidden;        /* scroll damy na #log */
+}
+
+
+
+    /* Boxy po prawej */
+    #gameInfo { order: 0; }
+    #controls { order: 1; }
+    #log      { order: 2; }
+
+    /* schowaj stary panel statystyk pod planszą */
+    #selectedUnit { display: none !important; }
+
+    /* Info-boxy i kontrolki */
+    #gameInfo {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .infoBox {
+      background: rgba(139,105,20,0.3);
+      padding: 10px 15px;
+      border-radius: 5px;
+      border: 1px solid #8b6914;
+      min-width: 120px;
+    }
+
+    .infoBox h3 {
+      color: #ffd700;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    #canvas {
+      border: 2px solid #8b6914;
+      cursor: crosshair;
+      display: block;
+    }
+
+    button {
+      background: #8b6914;
+      color: #f0e6d2;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      transition: all .3s;
+    }
+
+    button:hover {
+      background: #b8860b;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    
+	
+	
+#log{
+  height: auto;
+  max-height: 720px;       /* jak wyżej: wysokość canvasa */
+  overflow-y: auto;        /* ⬅️ włącz przewijanie */
+}
+
+
+
+
+    .log-entry { margin-bottom: 5px; padding: 3px; }
+    .log-attack { color: #ff6b6b; }
+    .log-move { color: #51cf66; }
+    .log-info { color: #74c0fc; }
+    .log-victory { color: #ffd700; font-weight: bold; }
+
+    /* Tooltip przy jednostce (DOM overlay) */
+    #unitTooltip {
+      position: absolute;
+      display: none;
+      background: rgba(0,0,0,0.4);
+      color: #f0e6d2;
+      border: 1px solid #8b6914;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font: 15px 'Courier New', monospace;
+      pointer-events: none;
+      z-index: 10;
+      max-width: 240px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    /* Węższe widoki */
+    @media (max-width: 1400px) {
+      #sidePanel { width: 300px; }
+    }
+	
+		/* --- Start modal --- */
+	#startModal{
+	  position: fixed;
+	  inset: 0;
+	  background: rgba(0,0,0,.6);
+	  display: none;              /* pokazujemy przez JS: display:flex */
+	  align-items: center;
+	  justify-content: center;
+	  z-index: 100;
+	}
+	#startModal .modal-content{
+	  background: #1e120d;
+	  border: 2px solid #8b6914;
+	  border-radius: 10px;
+	  padding: 16px 18px;
+	  width: min(92vw, 420px);
+	  box-shadow: 0 0 24px rgba(0,0,0,.6);
+	}
+	#startModal h2{
+	  margin-bottom: 10px;
+	  color:#ffd700;
+	  font-size: 18px;
+	}
+	#startModal .row{
+	  display: flex;
+	  gap: 12px;
+	  margin: 10px 0 6px;
+	}
+	#startModal label{
+	  display: flex;
+	  flex: 1;
+	  align-items: center;
+	  justify-content: space-between;
+	  gap: 8px;
+	}
+	#startModal input[type=number]{
+	  width: 90px;
+	  padding: 6px 8px;
+	  background: #2b1a12;
+	  color: #f0e6d2;
+	  border: 1px solid #8b6914;
+	  border-radius: 6px;
+	  font-family: inherit;
+	}
+	#startModal .modal-actions{
+	  display: flex;
+	  justify-content: flex-end;
+	  gap: 10px;
+	  margin-top: 12px;
+	}
+	
+	/* Overlay: komunikat o początku planowania rundy */
+	#planningOverlay {
+	  position: absolute;
+	  left: 50%;
+	  top: 50%;
+	  transform: translate(-50%, -50%);
+	  display: none;                 /* sterowane JS-em */
+	  background: rgba(0,0,0,0.65);
+	  color: #ffd700;
+	  border: 2px solid #8b6914;
+	  border-radius: 10px;
+	  padding: 16px 22px;
+	  font: bold 22px 'Courier New', monospace;
+	  z-index: 999;                  /* nad mapą */
+	  box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+	  text-align: center;
+	  pointer-events: none;
+	}
+	
+	/* styles.css — PODMIANA/UZUPEŁNIENIE TOP BAR */
+#topBar{
+  display:flex; align-items:center;
+  gap:12px; margin-bottom:14px;
+  background: linear-gradient(#6f4a1d, #5b3a17);
+  border:3px solid #8b6914; border-radius:10px;
+  padding:8px 12px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.05), 0 4px 18px rgba(0,0,0,0.5);
+  width:100%; 
+}
+#topBar .top-left{
+  display:flex; align-items:center; gap:10px; flex:0 1 auto;
+}
+#topBar .top-right{
+  margin-left:auto; display:flex; align-items:center; gap:8px;
+}
+
+#topBar .count{
+  font-weight:900; font-size:20px; letter-spacing:.5px;
+  padding:3px 8px; border-radius:6px; background: rgba(0,0,0,.25);
+  border:1px solid rgba(0,0,0,.35);
+}
+#topBar .count.red{ color:#ff6b6b; }
+#topBar .count.blue{ color:#74c0fc; }
+#topBar .bold{ font-weight:900; }
+
+#topBar .flag{
+  display:inline-flex; align-items:center; gap:6px; color:#ffd700;
+}
+#topBar .flag .flag-icon{ width:28px; height:28px; display:block; }
+
+#topBar .actions button,
+#topEndTurnBtn{
+  background:#8b6914; color:#f0e6d2; border:none;
+  padding:8px 12px; border-radius:6px; cursor:pointer;
+  font-family:'Courier New', monospace; font-weight:bold;
+  transition:all .2s; white-space:nowrap;
+}
+#topBar .actions button:hover,
+#topEndTurnBtn:hover{ background:#b8860b; transform: translateY(-1px); }
+#topBar .actions button:disabled,
+#topEndTurnBtn:disabled{ background:#555; transform:none; cursor:not-allowed; }
+
+/* ukryj stary #gameInfo */
+#gameInfo{ display:none !important; }
+
+/* styles.css — wygląd przycisku Start na top barze */
+#topStartGameBtn{
+  background:#8b6914; color:#f0e6d2; border:none;
+  padding:8px 12px; border-radius:6px; cursor:pointer;
+  font-family:'Courier New', monospace; font-weight:bold;
+  transition:all .2s; white-space:nowrap; margin-left:8px;
+}
+#topStartGameBtn:hover{ background:#b8860b; transform:translateY(-1px); }
+#topStartGameBtn:disabled{ background:#555; transform:none; cursor:not-allowed; }
+
+
+
+
+
+
+
+/* Prawy panel i log: mocny kontrast tła */
+#sidePanel{
+  background: #141416;            /* ciemne tło dla kontrastu */
+  border: 1px solid #2a2a2d;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+#log{
+  background: #0f1012;            /* jeszcze ciemniejsze wnętrze loga */
+  border: 1px solid #2d2f36;
+  border-radius: 6px;
+  padding: 10px;
+  max-height: 720px;              /* jak wysokość canvasa */
+  overflow-y: auto;
+}
+
+/* wspólna linia loga */
+.log-entry{
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.35;
+}
+
+/* kolory strzałów */
+.log-attack.log-red{
+  color: #ff6b6b;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.25);
+}
+.log-attack.log-blue{
+  color: #74c0fc;
+  background: rgba(100, 160, 255, 0.12);
+  border: 1px solid rgba(100, 160, 255, 0.25);
+}
+
+/* info (np. komunikaty ogólne) – subtelne */
+.log-info{
+  color: #cfd6e6;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+
+/* --- TOP BAR: kolumny i paski HP --- */
+#topBar .top-col{
+  display:flex; flex-direction:column; align-items:flex-start; gap:6px;
+}
+
+#topBar .hp-group{
+  display:flex; align-items:center; gap:8px;
+}
+
+#topBar .hpval{
+  font-size:12px; color:#ddd; opacity:0.9;
+}
+
+#topBar .hpbar{
+  width: 90px;
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,0,0,0.45);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+}
+#topBar .hpbar .hpbar-fill{
+  height: 100%;
+  width: 0%;
+  transition: width .25s ease;
+}
+
+#topBar .hpbar.hp-red .hpbar-fill{
+  background: linear-gradient(90deg, #ff6b6b, #b71c1c);
+}
+#topBar .hpbar.hp-blue .hpbar-fill{
+  background: linear-gradient(90deg, #74c0fc, #1c33b7);
+}

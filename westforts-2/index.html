@@ -1,1 +1,136 @@
-siema
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The West Forts – v10-9-3</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <!-- START MODAL -->
+    <div id="startModal" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+      <div class="modal-content">
+        <h2 id="startTitle">Ustawienia gry</h2>
+        <div class="row">
+          <label for="attackersInput">
+            <span>Atakujący</span>
+            <input id="attackersInput" type="number" min="1" max="50" value="10" />
+          </label>
+        </div>
+        <div class="row">
+          <label for="defendersInput">
+            <span>Obrońcy</span>
+            <input id="defendersInput" type="number" min="1" max="42" value="7" />
+          </label>
+        </div>
+		<div class="row">
+		  <label for="atkHpInput">
+			<span>HP Atakujących</span>
+			<input id="atkHpInput" type="number" min="1" max="35000" value="2000" />
+		  </label>
+		</div>
+		<div class="row">
+		  <label for="defHpInput">
+			<span>HP Obrońców</span>
+			<input id="defHpInput" type="number" min="1" max="35000" value="1700" />
+		  </label>
+		</div>
+		<div class="row">
+		  <label for="defControl">
+			<span>Sterowanie obrońcami</span>
+			<select id="defControl">
+			  <option value="human" selected>Gracz</option>
+			  <option value="ai">AI</option>
+			</select>
+		  </label>
+		</div>
+        <div class="modal-actions">
+          <button id="startConfirmBtn">Start</button>
+        </div>
+      </div>
+    </div>
+    <!-- END MODAL -->
+
+	
+	<!-- TOP BAR -->
+<div id="topBar" aria-label="Panel statusu">
+  <div class="top-left">
+  <div class="hp-group">
+        <div class="hpbar hp-red" aria-label="HP Atakujących">
+          <div id="topAttHpBar" class="hpbar-fill"></div>
+        </div>
+        <div class="hpval">
+          <span id="topAttHpVal">0 / 0</span>
+        </div>
+      </div>
+    <span id="topAttackers" class="count red">0</span>
+	
+
+
+    <span id="topRound" class="bold">Runda 1/55</span>
+    <span class="bold">&nbsp;zacznie się za:&nbsp;<span id="topTimer">00:30</span></span>
+    <span id="topDefenders" class="count blue">0</span>
+	
+	
+ <div class="hp-group">
+        <div class="hpbar hp-blue" aria-label="HP Obrońców">
+          <div id="topDefHpBar" class="hpbar-fill"></div>
+        </div>
+        <div class="hpval">
+          <span id="topDefHpVal">0 / 0</span>
+        </div>
+      </div>
+
+
+    <button id="topEndTurnBtn">Zakończ turę przed czasem</button>
+    <span class="flag" aria-label="Flaga">
+      <svg viewBox="0 0 36 36" aria-hidden="true" focusable="false" class="flag-icon">
+        <rect x="4" y="2" width="3" height="32" rx="1.2" fill="#5b3a17"/>
+        <rect x="4.6" y="2" width="1.8" height="32" rx="0.9" fill="#794d22"/>
+        <path d="M7 4 C14 4, 16 7, 23 6 C25 5.7, 28 5, 31 5 L31 20
+                 C28 20, 25.5 19.2, 23 18.7 C16 17.5, 14 20, 7 20 Z"
+              fill="#b7352d" stroke="#f2c56b" stroke-width="1.2"/>
+        <path d="M8 10 C14.5 10, 16 12, 22.8 11.2 C25.2 10.9, 27.4 10.5, 30 10.5
+                 L30 13.5 C27.2 13.5, 25 13.1, 22.6 12.8
+                 C15.8 12, 14.4 14, 8 14 Z"
+              fill="#7e1f1a" opacity="0.9"/>
+        <path d="M31 5 L35 9 L31 13 Z" fill="#b7352d"/>
+        <path d="M31 12 L35 16 L31 20 Z" fill="#b7352d"/>
+        <path d="M9 6 C14 6, 16 8.2, 22.5 7.6 C25 7.3, 27.2 7.1, 30 7.1
+                 L30.2 8.3 C27.3 8.3, 25.1 8.5, 22.7 8.8
+                 C16.2 9.6, 14.1 7.7, 9 7.8 Z"
+              fill="#ffffff" opacity="0.15"/>
+      </svg>
+      <span id="topFlag">0/5</span>
+    </span>
+	
+	<button id="topStartGameBtn" style="display:none;">Rozpocznij grę</button>
+  </div>
+
+  <div class="top-right actions">
+    <button id="topToggleCoordsBtn" title="Numery kratek">Koordynaty</button>
+    <button id="topToggleSectorIdsBtn" title="Numery sektorów">Sektory</button>
+    <button id="topResetBtn">Resetuj grę</button>
+  </div>
+</div>
+	
+    <div id="layoutRow">
+      <div id="boardWrap">
+        <canvas id="canvas" width="1020" height="720" aria-label="Plansza gry"></canvas>
+      </div>
+
+      <aside id="sidePanel">
+        <div id="log" aria-live="polite" aria-atomic="false"></div>
+      </aside>
+    </div>
+
+    <div id="unitTooltip" role="dialog" aria-live="polite"></div>
+    <div id="planningOverlay" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- Jeden moduł wejściowy -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
